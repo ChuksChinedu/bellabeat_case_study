@@ -1,0 +1,151 @@
+---
+title: "Bellabeat case study"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+About the company 
+
+Urška Sršen and Sando Mur founded Bellabeat, a high-tech company that manufactures health-focused smart products. Sršen used her background as an artist to develop beautifully designed technology that informs and inspires women around the world. Collecting data on activity, sleep, stress, and reproductive health has allowed Bellabeat to empower women with knowledge about their own health and habits. Since it was founded in 2013, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for women.
+
+
+**ASK** 
+
+Business task:
+Analyze a smart device fitness data (non-bellabeat product) to help bellabeat unlock new growth opportunities for the company.
+
+Key stakeholders
+
+Urška Sršen,
+Sando Mur,
+Bellabeat marketing analysis team.
+
+**PREPARE**
+
+Data has been downloaded and stored with appropriate file naming conventions.
+The data is being organized in a wide row and column format.
+Data was gotten from a public domain in which 30 eligible Fitbit user consented to the submission of personal tracker data. Since this data is being used in a case study, we can assume the data source is credible.
+
+**PROCESS**
+
+For this analysis I’ll be using R.  I am using this tool because R can clean, analyze, and visualize the data. 
+
+Load the needed packages.
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(readr)
+```
+
+
+Import the datasets.
+
+
+```{r}
+activity <- read_csv("fitbit_data/dailyActivity_merged.csv")
+sleep <- read_csv("fitbit_data/sleepDay_merged.csv")
+weight <- read_csv("fitbit_data/weightLogInfo_merged.csv")
+```
+
+
+
+```{r}
+head(activity)
+```
+
+
+Fix errors associated with time formatting
+
+
+```{r}
+activity <- activity %>% 
+  rename (Date = ActivityDate) %>% 
+  mutate (Date = as.Date(Date, format = "%m/%d/%y"))
+sleep <- sleep %>%
+  rename (Date = SleepDay) %>%
+  mutate (Date = as.Date(Date, format = "%m/%d/%y"))
+weight <- weight %>%
+  mutate (Date = as.Date(Date, format = "%m/%d/%y"))
+```
+
+
+
+```{r}
+n_distinct(activity$Id)
+n_distinct(sleep$Id)
+n_distinct(weight$Id)
+```
+
+
+```{r}
+merged_table <- merge(merge(activity, sleep, by = c('Id', 'Date'), all = TRUE), weight, by = c('Id', 'Date'), all = TRUE)
+```
+
+
+```{r}
+head(merged_table)
+```
+
+
+```{r}
+summary(merged_table)
+```
+
+
+**SHARE**
+
+
+```{r}
+ggplot(data = merged_table, aes(x = TotalSteps, y = Calories)) +  
+  geom_point() + 
+  geom_smooth() + 
+  labs(title = 'Calories burned by steps', y = 'Calories', x = 'Total Steps')
+
+```
+
+
+There’s a positive correlation between number of steps and calories burnt, which makes sense because the more active one is, the more calorie is being burnt.
+
+
+```{r}
+ggplot(data = merged_table, aes(x=TotalMinutesAsleep, y=SedentaryMinutes)) + 
+  geom_point(color='green') + geom_smooth() +
+  labs(title="Sleep vs Inactive Lifestyle")
+
+```
+
+
+The data here shows that those with a sedentary lifestyle spent less time asleep. There could be several factors affecting sleep cycle but it’s a point worth noting. 
+
+
+
+```{r}
+ggplot(data = merged_table, aes(x = SedentaryMinutes, y = TotalSteps)) + 
+  geom_point(color='blue') +
+  labs(title = 'Sendentary Minutes vs Total steps', x = 'Sedentary Minutes', y ='Total Steps')
+
+```
+
+
+Sedentary users took less steps.
+
+
+
+
+**ACT**
+
+After analyzing Fitbit Fitness Tracker Data , here are a few insights which can  be helpful to bellabeat in unlocking new growth opportunities. 
+
+*From the reported data, only 8 users reported their weight, bellabeat could develop a scale that helps track weight progress. (Weight gain or weight loss progress over time.)
+
+*Develop app notifications to help alert users when they’re not getting enough steps per day. According to the CDC, most adults should aim for 10,000 steps day. Sending out notifications throughout the day would help users achieve that goal. 
+
+*Offer incentives such as (a fraction off the monthly subscription plan) to more active users to help reduce the sedentary time.
+
+
